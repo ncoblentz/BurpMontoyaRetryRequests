@@ -1,2 +1,2 @@
-rootProject.name = "RetryRequestsMontoya"
+rootProject.name = "retryrequestsmontoya"
 
