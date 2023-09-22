@@ -20,4 +20,4 @@ $ ./gradlew jar
 1. Open Burp Suite
 2. Go to Extensions -> Installed -> Add
    - Extension Type: Java
-   - Extension file: build/libs/RetryRequestsMontoya-1.0-SNAPSHOT.jar
+   - Extension file: build/libs/retryrequestsmontoya-1.1.jar
