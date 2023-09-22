@@ -2,23 +2,29 @@ package com.nickcoblentz.montoya.utilities;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
+import burp.api.montoya.http.message.requests.HttpRequest;
 
 import java.util.List;
 
 public class RetryRequestsRunnable implements Runnable {
     private MontoyaApi _API;
-    private HttpRequestResponse _RequestResponse;
+    private HttpRequest _Request;
     public RetryRequestsRunnable(MontoyaApi api, HttpRequestResponse requestResponse)
     {
         _API=api;
-        _RequestResponse = requestResponse;
+        _Request = requestResponse.request();
     }
 
+    public RetryRequestsRunnable(MontoyaApi api, HttpRequest request)
+    {
+        _API=api;
+        _Request = request;
+    }
     @Override
     public void run() {
-        if(_RequestResponse.request()!=null)
+        if(_Request!=null)
         {
-            _API.http().sendRequest(_RequestResponse.request());
+            _API.http().sendRequest(_Request);
         }
     }
 }

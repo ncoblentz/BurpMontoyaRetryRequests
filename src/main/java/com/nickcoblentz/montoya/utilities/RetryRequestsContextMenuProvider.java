@@ -2,7 +2,6 @@ package com.nickcoblentz.montoya.utilities;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
-import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.ui.contextmenu.AuditIssueContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
@@ -18,9 +17,14 @@ import java.util.List;
 
 public class RetryRequestsContextMenuProvider implements ContextMenuItemsProvider, ActionListener {
 
+    public static final String RETRY_REQUESTS = "RetryRequests";
+    public static final String RETRY_VERBS = "RetryVerbs";
+
+    private List<String> _Verbs = List.of("OPTIONS","POST","PUT","PATCH","HEAD","GET","TRACE","TRACK","LOCK","UNLOCK","FAKE","DELETE");
     private ArrayList<Component> _MenuItemList;
     private MontoyaApi _API;
-    private JMenuItem _RetryRequestJMenu = new JMenuItem("RetryRequests");
+    private JMenuItem _RetryRequestJMenu = new JMenuItem(RETRY_REQUESTS);
+    private JMenuItem _RetryVerbsJMenu = new JMenuItem(RETRY_VERBS);
     private ContextMenuEvent _Event;
 
     private MyThreadPool _MyThreadPool;
@@ -30,8 +34,12 @@ public class RetryRequestsContextMenuProvider implements ContextMenuItemsProvide
         _API=api;
         _MyThreadPool=threadPool;
         _RetryRequestJMenu.addActionListener(this);
+        _RetryRequestJMenu.setActionCommand(RETRY_REQUESTS);
+        _RetryVerbsJMenu.addActionListener(this);
+        _RetryVerbsJMenu.setActionCommand(RETRY_VERBS);
         _MenuItemList = new ArrayList<Component>();
         _MenuItemList.add(_RetryRequestJMenu);
+        _MenuItemList.add(_RetryVerbsJMenu);
 
     }
 
@@ -59,20 +67,38 @@ public class RetryRequestsContextMenuProvider implements ContextMenuItemsProvide
 
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
+        List<HttpRequestResponse> requestResponses = getRequestResponseFromEvent();
 
-        if(!_Event.selectedRequestResponses().isEmpty())
-        {
-            for(HttpRequestResponse requestResponse : _Event.selectedRequestResponses())
-            {
-                MyThreadPool.getInstance().addRunnable(new RetryRequestsRunnable(_API,requestResponse));
+        if(actionEvent.getActionCommand().equals(RETRY_REQUESTS)) {
+            for (HttpRequestResponse requestResponse : requestResponses) {
+                MyThreadPool.getInstance().addRunnable(new RetryRequestsRunnable(_API, requestResponse));
             }
         }
-        else if(_Event.messageEditorRequestResponse().isPresent() && !_Event.messageEditorRequestResponse().isEmpty())
-        {
-            if(_Event.messageEditorRequestResponse().get().requestResponse().request()!=null)
-            {
-                MyThreadPool.getInstance().addRunnable(new RetryRequestsRunnable(_API,_Event.messageEditorRequestResponse().get().requestResponse()));
+        else if(actionEvent.getActionCommand().equals(RETRY_VERBS)) {
+            for (HttpRequestResponse requestResponse : requestResponses) {
+                for(String verb : _Verbs)
+                {
+                    HttpRequestResponse newRequestResponse = requestResponse;
+
+                    MyThreadPool.getInstance().addRunnable(new RetryRequestsRunnable(_API, requestResponse.request().withMethod(verb)));
+                }
+
             }
         }
+    }
+
+    private List<HttpRequestResponse> getRequestResponseFromEvent()
+    {
+        List<HttpRequestResponse> result= new ArrayList<HttpRequestResponse>();;
+        if (!_Event.selectedRequestResponses().isEmpty()) {
+            result=_Event.selectedRequestResponses();
+        }
+        else if (_Event.messageEditorRequestResponse().isPresent() && !_Event.messageEditorRequestResponse().isEmpty()) {
+            if (_Event.messageEditorRequestResponse().get().requestResponse().request() != null) {
+                result.add(_Event.messageEditorRequestResponse().get().requestResponse());
+                return result;
+            }
+        }
+        return result;
     }
 }
