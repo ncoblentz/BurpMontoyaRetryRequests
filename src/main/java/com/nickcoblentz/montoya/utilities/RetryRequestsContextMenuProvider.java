@@ -20,7 +20,7 @@ public class RetryRequestsContextMenuProvider implements ContextMenuItemsProvide
     public static final String RETRY_REQUESTS = "RetryRequests";
     public static final String RETRY_VERBS = "RetryVerbs";
 
-    private List<String> _Verbs = List.of("OPTIONS","POST","PUT","PATCH","HEAD","GET","TRACE","TRACK","LOCK","UNLOCK","FAKE","DELETE");
+    private List<String> _Verbs = List.of("OPTIONS","POST","PUT","PATCH","HEAD","GET","TRACE","TRACK","LOCK","UNLOCK","FAKE","CONNECT","COPY","MOVE","LABEL","UPDATE","VERSION-CONTROL","UNCHECKOUT","CHECKOUT","DELETE");
     private ArrayList<Component> _MenuItemList;
     private MontoyaApi _API;
     private JMenuItem _RetryRequestJMenu = new JMenuItem(RETRY_REQUESTS);
