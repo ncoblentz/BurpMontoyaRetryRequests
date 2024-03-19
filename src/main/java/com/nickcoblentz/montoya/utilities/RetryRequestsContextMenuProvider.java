@@ -103,9 +103,12 @@ public class RetryRequestsContextMenuProvider implements ContextMenuItemsProvide
 
                     if(actionEvent.getActionCommand().equals(RETRY_VERBS_CONTENT_LENGTH_JSON))
                     {
-
-                        newRequestResponse = HttpRequestResponse.httpRequestResponse(newRequestResponse.request().withAddedHeader("Content-Type","application/json"),newRequestResponse.response());
-
+                        if(newRequestResponse.request().hasHeader("Content-Type")) {
+                            newRequestResponse = HttpRequestResponse.httpRequestResponse(newRequestResponse.request().withUpdatedHeader("Content-Type", "application/json"), newRequestResponse.response());
+                        }
+                        else {
+                            newRequestResponse = HttpRequestResponse.httpRequestResponse(newRequestResponse.request().withAddedHeader("Content-Type", "application/json"), newRequestResponse.response());
+                        }
                     }
 
 
