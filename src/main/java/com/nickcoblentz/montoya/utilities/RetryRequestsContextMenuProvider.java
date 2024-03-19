@@ -2,6 +2,7 @@ package com.nickcoblentz.montoya.utilities;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
+import burp.api.montoya.http.message.responses.HttpResponse;
 import burp.api.montoya.ui.contextmenu.AuditIssueContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
@@ -19,12 +20,16 @@ public class RetryRequestsContextMenuProvider implements ContextMenuItemsProvide
 
     public static final String RETRY_REQUESTS = "RetryRequests";
     public static final String RETRY_VERBS = "RetryVerbs";
+    public static final String RETRY_VERBS_CONTENT_LENGTH = "RetryVerbsWContentLength";
+    public static final String RETRY_VERBS_CONTENT_LENGTH_JSON = "RetryVerbsWContentLengthJson";
 
     private List<String> _Verbs = List.of("OPTIONS","POST","PUT","PATCH","HEAD","GET","TRACE","TRACK","LOCK","UNLOCK","FAKE","CONNECT","COPY","MOVE","LABEL","UPDATE","VERSION-CONTROL","UNCHECKOUT","CHECKOUT","DELETE");
     private ArrayList<Component> _MenuItemList;
     private MontoyaApi _API;
     private JMenuItem _RetryRequestJMenu = new JMenuItem(RETRY_REQUESTS);
     private JMenuItem _RetryVerbsJMenu = new JMenuItem(RETRY_VERBS);
+    private JMenuItem _RetryVerbsCLJMenu = new JMenuItem(RETRY_VERBS_CONTENT_LENGTH);
+    private JMenuItem _RetryVerbsCLJSONJMenu = new JMenuItem(RETRY_VERBS_CONTENT_LENGTH_JSON);
     private ContextMenuEvent _Event;
 
     private MyThreadPool _MyThreadPool;
@@ -37,9 +42,17 @@ public class RetryRequestsContextMenuProvider implements ContextMenuItemsProvide
         _RetryRequestJMenu.setActionCommand(RETRY_REQUESTS);
         _RetryVerbsJMenu.addActionListener(this);
         _RetryVerbsJMenu.setActionCommand(RETRY_VERBS);
+        _RetryVerbsCLJMenu.addActionListener(this);
+        _RetryVerbsCLJMenu.setActionCommand(RETRY_VERBS_CONTENT_LENGTH);
+        _RetryVerbsCLJSONJMenu.addActionListener(this);
+        _RetryVerbsCLJSONJMenu.setActionCommand(RETRY_VERBS_CONTENT_LENGTH_JSON);
+
+
         _MenuItemList = new ArrayList<Component>();
         _MenuItemList.add(_RetryRequestJMenu);
         _MenuItemList.add(_RetryVerbsJMenu);
+        _MenuItemList.add(_RetryVerbsCLJMenu);
+        _MenuItemList.add(_RetryVerbsCLJSONJMenu);
 
     }
 
@@ -74,13 +87,29 @@ public class RetryRequestsContextMenuProvider implements ContextMenuItemsProvide
                 MyThreadPool.getInstance().addRunnable(new RetryRequestsRunnable(_API, requestResponse));
             }
         }
-        else if(actionEvent.getActionCommand().equals(RETRY_VERBS)) {
+        else {
             for (HttpRequestResponse requestResponse : requestResponses) {
                 for(String verb : _Verbs)
                 {
                     HttpRequestResponse newRequestResponse = requestResponse;
 
-                    MyThreadPool.getInstance().addRunnable(new RetryRequestsRunnable(_API, requestResponse.request().withMethod(verb)));
+                    if(actionEvent.getActionCommand().equals(RETRY_VERBS_CONTENT_LENGTH) || actionEvent.getActionCommand().equals(RETRY_VERBS_CONTENT_LENGTH_JSON))
+                    {
+                        if(!newRequestResponse.request().hasHeader("Content-Length"))
+                        {
+                            newRequestResponse = HttpRequestResponse.httpRequestResponse(newRequestResponse.request().withAddedHeader("Content-Length","0"),newRequestResponse.response());
+                        }
+                    }
+
+                    if(actionEvent.getActionCommand().equals(RETRY_VERBS_CONTENT_LENGTH_JSON))
+                    {
+
+                        newRequestResponse = HttpRequestResponse.httpRequestResponse(newRequestResponse.request().withAddedHeader("Content-Type","application/json"),newRequestResponse.response());
+
+                    }
+
+
+                    MyThreadPool.getInstance().addRunnable(new RetryRequestsRunnable(_API, newRequestResponse.request().withMethod(verb)));
                 }
 
             }
