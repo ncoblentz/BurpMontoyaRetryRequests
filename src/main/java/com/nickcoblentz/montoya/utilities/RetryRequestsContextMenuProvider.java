@@ -24,6 +24,7 @@ public class RetryRequestsContextMenuProvider implements ContextMenuItemsProvide
     public static final String RETRY_VERBS_CONTENT_LENGTH_JSON = "RetryVerbsWContentLengthJson";
 
     private List<String> _Verbs = List.of("OPTIONS","POST","PUT","PATCH","HEAD","GET","TRACE","TRACK","LOCK","UNLOCK","FAKE","CONNECT","COPY","MOVE","LABEL","UPDATE","VERSION-CONTROL","UNCHECKOUT","CHECKOUT","DELETE");
+    private List<String> _VerbsNoBody = List.of("GET","OPTIONS","HEAD","CONNECT","TRACE");
     private ArrayList<Component> _MenuItemList;
     private MontoyaApi _API;
     private JMenuItem _RetryRequestJMenu = new JMenuItem(RETRY_REQUESTS);
@@ -83,11 +84,15 @@ public class RetryRequestsContextMenuProvider implements ContextMenuItemsProvide
         List<HttpRequestResponse> requestResponses = getRequestResponseFromEvent();
 
         if(actionEvent.getActionCommand().equals(RETRY_REQUESTS)) {
+            int count=1;
+            int total=requestResponses.size();
             for (HttpRequestResponse requestResponse : requestResponses) {
-                MyThreadPool.getInstance().addRunnable(new RetryRequestsRunnable(_API, requestResponse));
+                MyThreadPool.getInstance().addRunnable(new RetryRequestsRunnable(_API, requestResponse,count++,total));
             }
         }
         else {
+            int total = requestResponses.size()*_Verbs.size();
+            int count=1;
             for (HttpRequestResponse requestResponse : requestResponses) {
                 for(String verb : _Verbs)
                 {
@@ -109,10 +114,17 @@ public class RetryRequestsContextMenuProvider implements ContextMenuItemsProvide
                         else {
                             newRequestResponse = HttpRequestResponse.httpRequestResponse(newRequestResponse.request().withAddedHeader("Content-Type", "application/json"), newRequestResponse.response());
                         }
+
+                        if(newRequestResponse.request().bodyToString().isEmpty() && !_VerbsNoBody.contains(verb))
+                            newRequestResponse = HttpRequestResponse.httpRequestResponse(newRequestResponse.request().withBody("{}"),newRequestResponse.response());
+                        if(_VerbsNoBody.contains(verb) && !newRequestResponse.request().bodyToString().isEmpty())
+                        {
+                            MyThreadPool.getInstance().addRunnable(new RetryRequestsRunnable(_API, newRequestResponse.request().withMethod(verb),count++,total));
+                            newRequestResponse = HttpRequestResponse.httpRequestResponse(newRequestResponse.request().withBody(""),newRequestResponse.response());
+                        }
                     }
 
-
-                    MyThreadPool.getInstance().addRunnable(new RetryRequestsRunnable(_API, newRequestResponse.request().withMethod(verb)));
+                    MyThreadPool.getInstance().addRunnable(new RetryRequestsRunnable(_API, newRequestResponse.request().withMethod(verb),count++,total));
                 }
 
             }
