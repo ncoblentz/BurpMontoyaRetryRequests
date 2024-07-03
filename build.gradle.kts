@@ -16,7 +16,7 @@ dependencies {
     //testImplementation(platform("org.junit:junit-bom:5.9.1"))
     //testImplementation("org.junit.jupiter:junit-jupiter")
     implementation("net.portswigger.burp.extensions:montoya-api:+")
-    implementation("com.nickcoblentz.montoya:MontoyaLibrary:0.1.4")
+    implementation("com.nickcoblentz.montoya:MontoyaLibrary:0.1.5")
 }
 
 tasks.test {
