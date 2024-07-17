@@ -1,5 +1,9 @@
 # Burp RetryRequests (Using the Montoya API)
-__Author: Nick Coblentz__
+
+_By [Nick Coblentz](https://www.linkedin.com/in/ncoblentz/)_
+
+__The Retry Requests Burp Extension is made possible by [Virtue Security](https://www.virtuesecurity.com), the Application Penetration Testing consulting company I work for.__
+
 
 RetryRequests is a Burp Suite plugin that exposes a context-menu (right-click -> Extensions -> RetryRequests) to re-send, as is, one or more selected HTTP1/2 requests. This plugin is useful for anyone that prefers to test authorization controls, CSRF prevention, and other controls using session handling rules (Settings -> Sessions -> Session Handling Rules) and manual review through the Logger tab. Alternatives to that approach is to use plugins like Autorize or AutoRepeater.
 
