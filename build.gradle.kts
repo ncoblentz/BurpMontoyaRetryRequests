@@ -5,18 +5,25 @@ plugins {
 }
 
 group = "org.nickcoblentz.montoya.utilities"
-version = "1.4"
+version = "1.4.1"
 
 repositories {
     mavenLocal()
     mavenCentral()
+    maven(url="https://jitpack.io") {
+        content {
+            includeGroup("com.github.milchreis")
+            includeGroup("com.github.ncoblentz")
+        }
+    }
 }
 
 dependencies {
     //testImplementation(platform("org.junit:junit-bom:5.9.1"))
     //testImplementation("org.junit.jupiter:junit-jupiter")
     implementation("net.portswigger.burp.extensions:montoya-api:+")
-    implementation("com.nickcoblentz.montoya:MontoyaLibrary:0.1.5")
+    implementation("com.github.ncoblentz:BurpMontoyaLibrary:0.1.13")
+    implementation("com.github.milchreis:uibooster:1.21.1")
 }
 
 tasks.test {

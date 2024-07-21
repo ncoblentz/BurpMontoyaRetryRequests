@@ -3,6 +3,7 @@ package com.nickcoblentz.montoya.utilities;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
+import com.nickcoblentz.montoya.LogLevel;
 import com.nickcoblentz.montoya.MontoyaLogger;
 
 import java.util.List;
@@ -28,7 +29,7 @@ public class RetryRequestsRunnable implements Runnable {
     public void run() {
         if(_Request!=null)
         {
-            MontoyaLogger logger = new MontoyaLogger(_API,MontoyaLogger.DebugLogLevel);
+            MontoyaLogger logger = new MontoyaLogger(_API, LogLevel.DEBUG);
             _API.http().sendRequest(_Request);
             logger.debugLog(this.getClass().getCanonicalName(),String.format("Finished %s of %s",_myNumber,_total));
         }
