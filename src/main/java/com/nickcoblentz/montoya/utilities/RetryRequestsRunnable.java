@@ -7,6 +7,7 @@ import com.nickcoblentz.montoya.LogLevel;
 import com.nickcoblentz.montoya.MontoyaLogger;
 
 import java.util.List;
+import com.nickcoblentz.montoya.HttpRequestKt;
 
 public class RetryRequestsRunnable implements Runnable {
     private MontoyaApi _API;
@@ -30,6 +31,8 @@ public class RetryRequestsRunnable implements Runnable {
         if(_Request!=null)
         {
             MontoyaLogger logger = new MontoyaLogger(_API, LogLevel.DEBUG);
+            if(_Request.hasHeader("Content-Length"))
+                _Request=_Request.withUpdatedHeader("Content-Length", Integer.toString(_Request.body().length()));
             _API.http().sendRequest(_Request);
             logger.debugLog(this.getClass().getCanonicalName(),String.format("Finished %s of %s",_myNumber,_total));
         }

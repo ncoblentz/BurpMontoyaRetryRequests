@@ -22,7 +22,7 @@ dependencies {
     //testImplementation(platform("org.junit:junit-bom:5.9.1"))
     //testImplementation("org.junit.jupiter:junit-jupiter")
     implementation("net.portswigger.burp.extensions:montoya-api:+")
-    implementation("com.github.ncoblentz:BurpMontoyaLibrary:0.1.13")
+    implementation("com.github.ncoblentz:BurpMontoyaLibrary:0.1.21")
     implementation("com.github.milchreis:uibooster:1.21.1")
 }
 
