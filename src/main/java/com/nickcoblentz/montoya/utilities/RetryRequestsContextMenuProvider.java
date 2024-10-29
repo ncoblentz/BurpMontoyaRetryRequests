@@ -2,7 +2,6 @@ package com.nickcoblentz.montoya.utilities;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
-import burp.api.montoya.http.message.responses.HttpResponse;
 import burp.api.montoya.ui.contextmenu.AuditIssueContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
@@ -33,12 +32,12 @@ public class RetryRequestsContextMenuProvider implements ContextMenuItemsProvide
     private JMenuItem _RetryVerbsCLJSONJMenu = new JMenuItem(RETRY_VERBS_CONTENT_LENGTH_JSON);
     private ContextMenuEvent _Event;
 
-    private MyThreadPool _MyThreadPool;
+    private MyExecutor myExecutor;
 
-    public RetryRequestsContextMenuProvider(MontoyaApi api, MyThreadPool threadPool)
+    public RetryRequestsContextMenuProvider(MontoyaApi api, MyExecutor myExecutor)
     {
         _API=api;
-        _MyThreadPool=threadPool;
+        this.myExecutor = myExecutor;
         _RetryRequestJMenu.addActionListener(this);
         _RetryRequestJMenu.setActionCommand(RETRY_REQUESTS);
         _RetryVerbsJMenu.addActionListener(this);
@@ -87,7 +86,7 @@ public class RetryRequestsContextMenuProvider implements ContextMenuItemsProvide
             int count=1;
             int total=requestResponses.size();
             for (HttpRequestResponse requestResponse : requestResponses) {
-                MyThreadPool.getInstance().addRunnable(new RetryRequestsRunnable(_API, requestResponse,count++,total));
+                myExecutor.runTask(new RetryRequestsTask(_API, requestResponse.request()));
             }
         }
         else {
@@ -119,12 +118,12 @@ public class RetryRequestsContextMenuProvider implements ContextMenuItemsProvide
                             newRequestResponse = HttpRequestResponse.httpRequestResponse(newRequestResponse.request().withBody("{}"),newRequestResponse.response());
                         if(_VerbsNoBody.contains(verb) && !newRequestResponse.request().bodyToString().isEmpty())
                         {
-                            MyThreadPool.getInstance().addRunnable(new RetryRequestsRunnable(_API, newRequestResponse.request().withMethod(verb),count++,total));
+                            myExecutor.runTask(new RetryRequestsTask(_API, newRequestResponse.request().withMethod(verb)));
                             newRequestResponse = HttpRequestResponse.httpRequestResponse(newRequestResponse.request().withBody(""),newRequestResponse.response());
                         }
                     }
 
-                    MyThreadPool.getInstance().addRunnable(new RetryRequestsRunnable(_API, newRequestResponse.request().withMethod(verb),count++,total));
+                    myExecutor.runTask(new RetryRequestsTask(_API, newRequestResponse.request().withMethod(verb)));
                 }
 
             }

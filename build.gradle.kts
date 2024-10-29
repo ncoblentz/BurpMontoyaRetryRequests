@@ -2,10 +2,11 @@ plugins {
     id("java")
     id("maven-publish")
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    kotlin("jvm") version "2.0.21"
 }
 
 group = "org.nickcoblentz.montoya.utilities"
-version = "1.4.1"
+version = "1.4.2"
 
 repositories {
     mavenLocal()
@@ -22,7 +23,7 @@ dependencies {
     //testImplementation(platform("org.junit:junit-bom:5.9.1"))
     //testImplementation("org.junit.jupiter:junit-jupiter")
     implementation("net.portswigger.burp.extensions:montoya-api:+")
-    implementation("com.github.ncoblentz:BurpMontoyaLibrary:0.1.21")
+    implementation("com.github.ncoblentz:BurpMontoyaLibrary:0.1.27")
     implementation("com.github.milchreis:uibooster:1.21.1")
 }
 
