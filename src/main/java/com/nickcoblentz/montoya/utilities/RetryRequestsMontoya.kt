@@ -3,25 +3,24 @@ package com.nickcoblentz.montoya.utilities
 import burp.api.montoya.BurpExtension
 import burp.api.montoya.MontoyaApi
 import burp.api.montoya.proxy.websocket.*
+import burp.api.montoya.ui.settings.SettingsPanelBuilder
+import burp.api.montoya.ui.settings.SettingsPanelPersistence
 import com.nickcoblentz.montoya.LogLevel
 import com.nickcoblentz.montoya.MontoyaLogger
-import com.nickcoblentz.montoya.settings.IntegerExtensionSetting
-import com.nickcoblentz.montoya.settings.BooleanExtensionSetting
-import com.nickcoblentz.montoya.settings.ExtensionSettingSaveLocation
-import com.nickcoblentz.montoya.settings.GenericExtensionSettingsFormGenerator
-import com.nickcoblentz.montoya.settings.ExtensionSettingsContextMenuProvider
-import com.nickcoblentz.montoya.settings.ExtensionSettingsUnloadHandler
-import de.milchreis.uibooster.model.FormBuilder
-import de.milchreis.uibooster.model.Form
-import java.util.LinkedList
+import com.nickcoblentz.montoya.settings.PanelSettingsDelegate
 
 class RetryRequestsMontoya : BurpExtension, ProxyWebSocketCreationHandler {
     private lateinit var api: MontoyaApi
     private lateinit var logger: MontoyaLogger
     private lateinit var myExecutor: MyExecutor
 
-    private lateinit var limitConcurrentRequestsSetting: BooleanExtensionSetting
-    private lateinit var concurrentRequestLimitSetting: IntegerExtensionSetting
+    private var currentLimit = 10
+    var pollingThread: Thread? = null
+    var exiting = false
+
+    private lateinit var myExtensionSettings : MyExtensionSettings
+
+
     private val proxyWebSockets = mutableListOf<ProxyWebSocketCreation>()
 
     override fun initialize(api: MontoyaApi?) {
@@ -32,43 +31,16 @@ class RetryRequestsMontoya : BurpExtension, ProxyWebSocketCreationHandler {
 
         api.extension().setName("Retry Requests")
 
-        myExecutor = MyExecutor(api)
 
 
         api.userInterface().registerContextMenuItemsProvider(RetryRequestsContextMenuProvider(api, myExecutor,proxyWebSockets))
         api.proxy().registerWebSocketCreationHandler(this)
-        limitConcurrentRequestsSetting = BooleanExtensionSetting(
-            api,
-            "Limit the number of concurrent HTTP requests?",
-            "RetryRequests.shouldLimit",
-            false,
-            ExtensionSettingSaveLocation.PROJECT
-        )
 
-        concurrentRequestLimitSetting = IntegerExtensionSetting(
-            api,
-            "Concurrent HTTP Request Limit",
-            "RetryRequests.limit",
-            10,
-            ExtensionSettingSaveLocation.PROJECT
-        )
+        myExtensionSettings = MyExtensionSettings()
+        api.userInterface().registerSettingsPanel(myExtensionSettings.settingsPanel)
 
-        val extensionSetting = listOf(limitConcurrentRequestsSetting,concurrentRequestLimitSetting)
-        val gen = GenericExtensionSettingsFormGenerator(extensionSetting, "Retry Requests Settings")
-        val settingsFormBuilder: FormBuilder = gen.getSettingsFormBuilder()
-        gen.addSaveCallback { formElement, form ->
-            if(limitConcurrentRequestsSetting.currentValue)
-                myExecutor.limitConcurrentRequests(concurrentRequestLimitSetting.currentValue)
-            else
-                myExecutor.removeConcurrentRequestLimit()
-        }
-        val settingsForm: Form = settingsFormBuilder.run()
+        myExecutor = MyExecutor(api,myExtensionSettings)
 
-        // Tell Burp we want a right mouse click context menu for accessing the settings
-        api.userInterface().registerContextMenuItemsProvider(ExtensionSettingsContextMenuProvider(api, settingsForm))
-
-        // When we unload this extension, include a callback that closes any Swing UI forms instead of just leaving them still open
-        api.extension().registerUnloadingHandler(ExtensionSettingsUnloadHandler(settingsForm))
 
         logger.debugLog("...Finished loading the extension")
     }
@@ -106,5 +78,24 @@ class RetryRequestsMontoya : BurpExtension, ProxyWebSocketCreationHandler {
 
 
     }
+
+}
+
+class MyExtensionSettings {
+    val settingsPanelBuilder : SettingsPanelBuilder = SettingsPanelBuilder.settingsPanel()
+        .withPersistence(SettingsPanelPersistence.PROJECT_SETTINGS)
+        .withTitle("Retry Requests")
+        .withDescription("Reload the extension for settings change to take place")
+        .withKeywords("Retry")
+
+    private val settingsManager = PanelSettingsDelegate(settingsPanelBuilder)
+
+    val limitConcurrentRequestsSetting: Boolean by settingsManager.booleanSetting("Limit the number of concurrent HTTP requests?", false)
+    val requestLimit: Int by settingsManager.integerSetting("Concurrent HTTP Request Limit", 10)
+
+
+
+    val settingsPanel = settingsManager.buildSettingsPanel()
+
 
 }
