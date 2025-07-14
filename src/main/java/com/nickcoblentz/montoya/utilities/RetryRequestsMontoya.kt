@@ -33,13 +33,12 @@ class RetryRequestsMontoya : BurpExtension, ProxyWebSocketCreationHandler {
 
 
 
-        api.userInterface().registerContextMenuItemsProvider(RetryRequestsContextMenuProvider(api, myExecutor,proxyWebSockets))
-        api.proxy().registerWebSocketCreationHandler(this)
-
         myExtensionSettings = MyExtensionSettings()
         api.userInterface().registerSettingsPanel(myExtensionSettings.settingsPanel)
 
         myExecutor = MyExecutor(api,myExtensionSettings)
+        api.userInterface().registerContextMenuItemsProvider(RetryRequestsContextMenuProvider(api, myExecutor,proxyWebSockets))
+        api.proxy().registerWebSocketCreationHandler(this)
 
 
         logger.debugLog("...Finished loading the extension")
