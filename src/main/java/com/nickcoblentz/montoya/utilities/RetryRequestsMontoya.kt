@@ -84,7 +84,7 @@ class MyExtensionSettings {
     val settingsPanelBuilder : SettingsPanelBuilder = SettingsPanelBuilder.settingsPanel()
         .withPersistence(SettingsPanelPersistence.PROJECT_SETTINGS)
         .withTitle("Retry Requests")
-        .withDescription("Reload the extension for settings change to take place")
+        .withDescription("Update Settings")
         .withKeywords("Retry")
 
     private val settingsManager = PanelSettingsDelegate(settingsPanelBuilder)

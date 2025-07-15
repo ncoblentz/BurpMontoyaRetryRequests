@@ -15,6 +15,7 @@ class MyExecutor (
     private val executorService: ExecutorService = Executors.newVirtualThreadPerTaskExecutor()
     private val logger : MontoyaLogger = MontoyaLogger(api,LogLevel.DEBUG)
     private var queuedRequests = 0
+    private var currentLimit = 10
 
     var semaphore = Semaphore(concurrentRequestLimit())
         public get
@@ -23,6 +24,11 @@ class MyExecutor (
 
 
     fun runTask(retryRequestTask: RetryRequestsTask) {
+        if(myExtensionSettings.limitConcurrentRequestsSetting && currentLimit!=concurrentRequestLimit()) {
+            semaphore=Semaphore(concurrentRequestLimit())
+            currentLimit = concurrentRequestLimit()
+        }
+
         executorService.submit {
             queuedRequests++
             printLoggingInfo()
